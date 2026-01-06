@@ -2,37 +2,24 @@ from flask import Flask, render_template, request, jsonify
 import os
 import PyPDF2
 
-# safe import for optional Gemini client
 try:
     import google.generativeai as genai
 except Exception:
     genai = None
 
-# -------------------------------
-# Flask app
-# -------------------------------
+
 app = Flask(__name__)
 
-# -------------------------------
-# Configure Gemini (optional)
-# Read API key from environment variable `GEMINI_API_KEY`
-# -------------------------------
+
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY")
 if genai is not None and GEMINI_API_KEY:
     try:
         genai.configure(api_key=GEMINI_API_KEY)
     except Exception:
-        # if configuration fails, disable genai usage
         genai = None
 
-# -------------------------------
-# Store resume text globally
-# -------------------------------
 resume_text_store = ""
 
-# -------------------------------
-# PDF Reader
-# -------------------------------
 def extract_text_from_pdf(file):
     text = ""
     reader = PyPDF2.PdfReader(file)
@@ -42,9 +29,7 @@ def extract_text_from_pdf(file):
             text += page_text + "\n"
     return text
 
-# -------------------------------
-# ATS Score
-# -------------------------------
+
 def calculate_ats_score(text):
     score = 0
     t = text.lower()
@@ -62,9 +47,7 @@ def calculate_ats_score(text):
 
     return score
 
-# -------------------------------
-# Routes
-# -------------------------------
+
 @app.route("/")
 def home():
     return render_template("index.html")
@@ -108,15 +91,12 @@ User Question:
 """
     )
 
-    # Some genai responses embed text differently; use `.text` when available
     reply_text = getattr(response, "text", None) or str(response)
 
     return jsonify({
         "reply": reply_text
     })
 
-# -------------------------------
-# Run app
-# -------------------------------
+
 if __name__ == "__main__":
     app.run(debug=True)
