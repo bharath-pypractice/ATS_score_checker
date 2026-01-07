@@ -1,333 +1,403 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ResumeLab AI | Professional ATS Suite</title>
+    <title>ResumeLab AI | Premium Analysis</title>
+    
+    <!-- Scripts -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Marked.js for Markdown parsing -->
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+        :root {
+            --brand-primary: #6366f1;
+            --brand-secondary: #10b981;
+            --bg-dark: #020617;
+            --card-bg: rgba(30, 41, 59, 0.5);
+        }
+
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #0f172a;
-            background-image: radial-gradient(circle at 50% -20%, #1e293b 0%, #0f172a 100%);
+            background-color: var(--bg-dark);
+            background-image: 
+                radial-gradient(circle at 0% 0%, rgba(99, 102, 241, 0.15) 0%, transparent 35%),
+                radial-gradient(circle at 100% 100%, rgba(16, 185, 129, 0.1) 0%, transparent 35%);
+            background-attachment: fixed;
             color: #f8fafc;
-            height: 100vh;
-            overflow: hidden;
+            min-height: 100vh;
         }
 
-        .glass-card {
-            background: rgba(30, 41, 59, 0.7);
+        /* Glassmorphism */
+        .glass {
+            background: var(--card-bg);
             backdrop-filter: blur(12px);
             border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 24px;
         }
 
-        .custom-scrollbar::-webkit-scrollbar {
+        /* Animations */
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .animate-slide-up {
+            animation: slideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        .chat-bubble-bot {
+            border-bottom-left-radius: 2px;
+        }
+
+        .chat-bubble-user {
+            border-bottom-right-radius: 2px;
+            background: linear-gradient(135deg, #4f46e5, #6366f1);
+        }
+
+        /* Score Gauge Animation */
+        .score-circle {
+            transition: stroke-dashoffset 1s ease-in-out;
+            stroke-linecap: round;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
             width: 6px;
         }
-        .custom-scrollbar::-webkit-scrollbar-track {
+        ::-webkit-scrollbar-track {
             background: transparent;
         }
-        .custom-scrollbar::-webkit-scrollbar-thumb {
+        ::-webkit-scrollbar-thumb {
             background: rgba(255, 255, 255, 0.1);
             border-radius: 10px;
         }
-
-        .progress-ring__circle {
-            transition: stroke-dashoffset 0.8s ease-in-out;
-            transform: rotate(-90deg);
-            transform-origin: 50% 50%;
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.2);
         }
 
-        @keyframes fadeInScale {
-            from { opacity: 0; transform: scale(0.95) translateY(10px); }
-            to { opacity: 1; transform: scale(1) translateY(0); }
-        }
-        .message-animate {
-            animation: fadeInScale 0.3s ease-out forwards;
-        }
-
-        /* Markdown Styling for AI Responses */
-        .prose-custom {
-            font-size: 0.875rem;
-            line-height: 1.6;
-            color: #e2e8f0;
-        }
-        .prose-custom p { margin-bottom: 0.75rem; }
-        .prose-custom p:last-child { margin-bottom: 0; }
-        .prose-custom strong { color: #fff; font-weight: 600; }
-        .prose-custom ul, .prose-custom ol { margin-bottom: 0.75rem; padding-left: 1.25rem; }
-        .prose-custom li { margin-bottom: 0.25rem; list-style-type: disc; }
-        .prose-custom code { 
-            background: rgba(0,0,0,0.3); 
-            padding: 0.2rem 0.4rem; 
-            border-radius: 4px; 
-            font-family: monospace; 
-            font-size: 0.8rem;
-            color: #818cf8;
-        }
-        .prose-custom pre {
-            background: #000;
-            padding: 1rem;
-            border-radius: 12px;
-            overflow-x: auto;
-            margin-bottom: 0.75rem;
-            border: 1px solid rgba(255,255,255,0.1);
-        }
-
-        .typing-dot {
-            width: 6px;
-            height: 6px;
-            background: #94a3b8;
+        .spinner {
+            border: 3px solid rgba(255, 255, 255, 0.1);
+            border-top: 3px solid var(--brand-secondary);
             border-radius: 50%;
-            animation: typing 1.4s infinite ease-in-out;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
         }
-        .typing-dot:nth-child(2) { animation-delay: 0.2s; }
-        .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-        @keyframes typing {
-            0%, 60%, 100% { transform: translateY(0); }
-            30% { transform: translateY(-4px); }
-        }
+        /* Markdown Styling */
+        .prose h3 { font-weight: 700; margin-bottom: 0.5rem; color: #818cf8; }
+        .prose p { margin-bottom: 0.75rem; line-height: 1.6; }
+        .prose ul { list-style-type: disc; padding-left: 1.25rem; margin-bottom: 0.75rem; }
     </style>
 </head>
-<body class="flex flex-col">
+<body class="flex flex-col h-screen overflow-hidden">
 
-    <header class="px-8 py-4 flex items-center justify-between border-b border-white/5 bg-slate-900/50 backdrop-blur-md">
-        <div class="flex items-center gap-3">
-            <div class="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-500/20 transition-transform hover:scale-105">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="text-white"><path d="M12 2v20"/><path d="m17 12-5 5-5-5"/><path d="m12 17V7"/></svg>
+    <!-- Navbar -->
+    <nav class="flex items-center justify-between px-8 py-4 border-b border-white/5 glass sticky top-0 z-50">
+        <div class="flex items-center gap-2">
+            <div class="bg-indigo-600 p-2 rounded-lg">
+                <i data-lucide="layers" class="w-5 h-5 text-white"></i>
             </div>
-            <div>
-                <h1 class="text-lg font-bold tracking-tight">ResumeLab <span class="text-indigo-400">AI</span></h1>
-                <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Neural ATS Analyst</p>
-            </div>
+            <span class="text-xl font-bold tracking-tight">ResumeLab <span class="text-indigo-400 font-extrabold italic">AI</span></span>
         </div>
-        <div class="flex items-center gap-6">
-            <nav class="hidden md:flex gap-6 text-sm font-medium text-slate-400">
-                <a href="/about" class="hover:text-white transition-colors">About</a>
-            </nav>
-            <div class="h-6 w-px bg-white/10"></div>
-            <div class="flex items-center gap-2">
-                <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                <span class="text-xs font-bold text-slate-400 uppercase tracking-tighter">System Ready</span>
-            </div>
+        <div class="flex items-center gap-4 text-sm text-slate-400">
+            <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> System Ready</span>
         </div>
-    </header>
+    </nav>
 
-    <main class="flex-1 overflow-hidden p-6 flex flex-col md:flex-row gap-6 max-w-[1600px] mx-auto w-full">
+    <main class="flex-1 flex flex-col md:flex-row overflow-hidden p-4 md:p-6 gap-6">
         
-        <!-- Left Pane: Analysis Tools -->
-        <div class="w-full md:w-1/3 flex flex-col gap-6 overflow-y-auto custom-scrollbar pr-2">
+        <!-- Sidebar: Upload & Analysis -->
+        <aside class="md:w-80 lg:w-96 flex flex-col gap-6 overflow-y-auto">
             
-            <div class="glass-card p-8 text-center transition-all hover:border-indigo-500/50">
-                <div class="mb-4 inline-flex p-4 bg-indigo-500/10 text-indigo-400 rounded-2xl">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/></svg>
-                </div>
-                <h3 class="text-xl font-bold mb-2">Upload Resume</h3>
-                <p class="text-sm text-slate-400 mb-6">Optimized for PDF parsing & Intelligence</p>
+            <!-- Upload Card -->
+            <div class="glass rounded-2xl p-6 animate-slide-up" style="animation-delay: 0.1s">
+                <h3 class="text-sm font-semibold uppercase tracking-wider text-slate-400 mb-4 flex items-center gap-2">
+                    <i data-lucide="upload-cloud" class="w-4 h-4"></i> Document Input
+                </h3>
                 
-                <input type="file" id="resumeFile" class="hidden" accept=".pdf" onchange="handleFileSelect(this)">
-                <button onclick="document.getElementById('resumeFile').click()" class="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold transition-all shadow-lg shadow-indigo-600/20 active:scale-95">
-                    Select PDF
+                <div id="dropZone" 
+                     class="border-2 border-dashed border-slate-700 hover:border-indigo-500 rounded-xl p-8 text-center transition-all cursor-pointer bg-slate-900/50 group"
+                     onclick="document.getElementById('resumeFile').click()">
+                    <input type="file" id="resumeFile" class="hidden" accept=".pdf" onchange="handleFile(this)">
+                    <div class="flex flex-col items-center">
+                        <div class="p-3 rounded-full bg-indigo-500/10 group-hover:bg-indigo-500/20 transition-colors mb-3">
+                            <i data-lucide="file-plus" class="w-8 h-8 text-indigo-400"></i>
+                        </div>
+                        <p class="text-sm font-medium text-slate-300">Drop PDF here or click</p>
+                        <p class="text-xs text-slate-500 mt-1">Maximum size 5MB</p>
+                    </div>
+                </div>
+
+                <div id="fileInfo" class="mt-4 hidden animate-slide-up">
+                    <div class="bg-slate-900/80 rounded-lg p-3 flex items-center gap-3 border border-white/5">
+                        <i data-lucide="file-text" class="w-5 h-5 text-emerald-400"></i>
+                        <div class="flex-1 min-w-0">
+                            <p id="fileName" class="text-xs font-medium truncate"></p>
+                            <p class="text-[10px] text-emerald-400">Ready to analyze</p>
+                        </div>
+                        <button onclick="handleFile(null)" class="text-slate-500 hover:text-red-400 transition-colors">
+                            <i data-lucide="x" class="w-4 h-4"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <button id="analyzeBtn" onclick="analyzeResume()" 
+                        class="w-full mt-4 py-3 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-xl font-bold transition-all flex items-center justify-center gap-2 shadow-lg shadow-indigo-900/20">
+                    <i data-lucide="zap" class="w-4 h-4"></i>
+                    <span id="analyzeText">Analyze Score</span>
                 </button>
             </div>
 
-            <div id="scoreCard" class="glass-card p-8 flex flex-col items-center opacity-30 pointer-events-none transition-all duration-500">
-                <div class="relative w-40 h-40 flex items-center justify-center mb-6">
-                    <svg class="w-full h-full transform -rotate-90">
-                        <circle cx="80" cy="80" r="70" stroke="currentColor" stroke-width="12" fill="transparent" class="text-slate-800" />
-                        <circle id="progressCircle" cx="80" cy="80" r="70" stroke="currentColor" stroke-width="12" fill="transparent" stroke-dasharray="440" stroke-dashoffset="440" stroke-linecap="round" class="progress-ring__circle text-indigo-500" />
+            <!-- Score Visual -->
+            <div id="scoreSection" class="glass rounded-2xl p-6 flex-1 flex flex-col items-center justify-center animate-slide-up opacity-40 transition-opacity duration-500" style="animation-delay: 0.2s">
+                <h3 class="text-sm font-semibold uppercase tracking-wider text-slate-400 mb-6 self-start flex items-center gap-2">
+                    <i data-lucide="activity" class="w-4 h-4"></i> ATS Compatibility
+                </h3>
+                
+                <div class="relative flex items-center justify-center">
+                    <!-- Gauge -->
+                    <svg class="w-48 h-48 transform -rotate-90">
+                        <circle cx="96" cy="96" r="80" stroke="currentColor" stroke-width="12" fill="transparent" class="text-slate-800" />
+                        <circle id="scoreCircle" cx="96" cy="96" r="80" stroke="currentColor" stroke-width="12" fill="transparent" 
+                                stroke-dasharray="502.6" stroke-dashoffset="502.6" class="text-indigo-500 score-circle" />
                     </svg>
-                    <div class="absolute flex flex-col items-center">
-                        <span id="scoreValue" class="text-4xl font-black">0</span>
-                        <span class="text-[10px] font-bold text-slate-500 uppercase tracking-tighter">ATS Points</span>
+                    <div class="absolute inset-0 flex flex-col items-center justify-center">
+                        <span id="scoreValue" class="text-5xl font-black text-white">0</span>
+                        <span class="text-xs font-bold text-slate-500 uppercase tracking-widest">Percent</span>
                     </div>
                 </div>
-                <div class="w-full text-center p-4 bg-white/5 rounded-2xl border border-white/5">
-                    <p id="scoreStatus" class="text-sm font-bold text-slate-400 uppercase mb-1 tracking-widest">Waiting for Data</p>
-                    <p class="text-[11px] leading-snug text-slate-500">Analysis includes Contact, Skills, Education, and Experience modules.</p>
+                
+                <div class="mt-8 grid grid-cols-2 gap-4 w-full">
+                    <div class="bg-slate-900/50 p-3 rounded-xl border border-white/5">
+                        <p class="text-[10px] uppercase text-slate-500 font-bold mb-1">Keywords</p>
+                        <p class="text-sm font-semibold text-emerald-400">Pending</p>
+                    </div>
+                    <div class="bg-slate-900/50 p-3 rounded-xl border border-white/5">
+                        <p class="text-[10px] uppercase text-slate-500 font-bold mb-1">Structure</p>
+                        <p class="text-sm font-semibold text-indigo-400">Pending</p>
+                    </div>
                 </div>
             </div>
-        </div>
+        </aside>
 
-        <!-- Right Pane: Intelligence Chat -->
-        <div class="flex-1 flex flex-col glass-card overflow-hidden">
-            <div class="px-6 py-4 border-b border-white/5 flex items-center justify-between bg-white/5">
+        <!-- Main Chat Area -->
+        <section class="flex-1 glass rounded-2xl flex flex-col overflow-hidden animate-slide-up" style="animation-delay: 0.3s">
+            <!-- Chat Header -->
+            <div class="px-6 py-4 border-b border-white/5 bg-slate-900/40 flex items-center justify-between">
                 <div class="flex items-center gap-3">
-                    <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-indigo-500 to-purple-500 flex items-center justify-center text-white shadow-inner">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                    <div class="w-10 h-10 rounded-full bg-indigo-500/20 flex items-center justify-center border border-indigo-500/30 text-indigo-400">
+                        <i data-lucide="bot" class="w-6 h-6"></i>
                     </div>
                     <div>
-                        <p class="text-sm font-bold">AI Resume Consultant</p>
-                        <p class="text-[10px] text-emerald-500 font-bold uppercase tracking-tighter">Neural Context Active</p>
+                        <h2 class="font-bold text-sm">Resume Expert AI</h2>
+                        <p class="text-[11px] text-slate-400">Expert Career Consultant • GPT-4o Powered</p>
+                    </div>
+                </div>
+                <button onclick="clearChat()" class="p-2 text-slate-500 hover:text-white transition-colors" title="Clear Chat">
+                    <i data-lucide="refresh-cw" class="w-4 h-4"></i>
+                </button>
+            </div>
+
+            <!-- Messages -->
+            <div id="chatArea" class="flex-1 overflow-y-auto p-6 space-y-6">
+                <!-- Welcome Message -->
+                <div class="flex items-start gap-3">
+                    <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center flex-shrink-0 border border-white/10">
+                        <i data-lucide="bot" class="w-4 h-4 text-indigo-400"></i>
+                    </div>
+                    <div class="bg-slate-800/80 p-4 rounded-2xl chat-bubble-bot text-sm max-w-[85%] border border-white/5 shadow-sm">
+                        Hello! I'm your ResumeLab AI assistant. 🚀 <br><br>
+                        Please **upload your resume** on the left to begin. I can analyze your ATS score, suggest improvements, or help you tailor it for specific job descriptions.
                     </div>
                 </div>
             </div>
 
-            <!-- Enhanced Chat Area -->
-            <div id="chatArea" class="flex-1 overflow-y-auto p-6 space-y-6 custom-scrollbar">
-                <div class="flex flex-col gap-1 max-w-[85%] message-animate">
-                    <div class="bg-slate-800 text-slate-200 p-5 rounded-2xl rounded-tl-none border border-white/5 shadow-sm">
-                        <div class="prose-custom">
-                            Hello! I'm your **AI career consultant**. 
-                            
-                            Upload your resume on the left to start. I'll provide an **ATS compliance check** and answer any questions about optimizing your professional profile.
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Input Area -->
-            <div class="p-4 bg-white/5 border-t border-white/5">
-                <div class="relative flex items-center gap-3">
-                    <input type="text" id="userInput" 
-                        onkeypress="if(event.key === 'Enter') sendMessage()"
-                        placeholder="Ask me anything about your resume..." 
-                        class="w-full bg-slate-950/50 border border-white/10 rounded-2xl px-6 py-4 text-sm focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all placeholder:text-slate-600">
-                    <button onclick="sendMessage()" class="absolute right-2 p-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl transition-all shadow-lg active:scale-90">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+            <!-- Input -->
+            <div class="p-4 bg-slate-900/60 border-t border-white/5">
+                <div class="max-w-4xl mx-auto flex items-center gap-3 bg-slate-800 rounded-2xl p-1.5 border border-white/10 focus-within:border-indigo-500/50 transition-all shadow-inner">
+                    <input id="userInput" 
+                           class="flex-1 bg-transparent px-4 py-2.5 text-sm focus:outline-none placeholder-slate-500"
+                           placeholder="Ask about your experience, skills, or gaps..."
+                           onkeypress="if(event.key==='Enter')sendMessage()">
+                    <button onclick="sendMessage()" 
+                            class="bg-indigo-600 hover:bg-indigo-500 w-10 h-10 flex items-center justify-center rounded-xl text-white transition-all transform active:scale-95 shadow-md">
+                        <i data-lucide="arrow-up" class="w-5 h-5"></i>
                     </button>
                 </div>
+                <p class="text-center text-[10px] text-slate-500 mt-2">AI can make mistakes. Verify important information.</p>
             </div>
-        </div>
+        </section>
 
     </main>
 
     <script>
+        // Initializations
         const chatArea = document.getElementById("chatArea");
-        const progressCircle = document.getElementById("progressCircle");
+        const scoreSection = document.getElementById("scoreSection");
         const scoreValue = document.getElementById("scoreValue");
-        const scoreStatus = document.getElementById("scoreStatus");
+        const scoreCircle = document.getElementById("scoreCircle");
+        const fileInfo = document.getElementById("fileInfo");
+        const fileNameDisplay = document.getElementById("fileName");
 
-        // Configuration for marked.js
-        marked.setOptions({
-            breaks: true,
-            gfm: true
-        });
+        lucide.createIcons();
+        marked.setOptions({ breaks: true });
+
+        function updateGauge(score) {
+            const circumference = 2 * Math.PI * 80;
+            const offset = circumference - (score / 100) * circumference;
+            scoreCircle.style.strokeDashoffset = offset;
+            
+            // Animate number
+            let start = 0;
+            const duration = 1000;
+            const stepTime = 20;
+            const steps = duration / stepTime;
+            const increment = score / steps;
+
+            const timer = setInterval(() => {
+                start += increment;
+                if (start >= score) {
+                    scoreValue.innerText = Math.round(score);
+                    clearInterval(timer);
+                } else {
+                    scoreValue.innerText = Math.round(start);
+                }
+            }, stepTime);
+        }
 
         function addMessage(text, role) {
-            const wrapper = document.createElement("div");
-            wrapper.className = `flex flex-col gap-1 ${role === 'user' ? 'items-end' : 'items-start'} message-animate`;
+            const isBot = role === "bot";
+            const container = document.createElement("div");
+            container.className = `flex ${isBot ? 'items-start' : 'items-end flex-row-reverse'} gap-3 animate-slide-up`;
             
-            const messageDiv = document.createElement("div");
-            
-            if (role === 'user') {
-                messageDiv.className = "bg-indigo-600 text-white p-4 rounded-2xl rounded-tr-none text-sm max-w-[85%] shadow-lg shadow-indigo-600/10";
-                messageDiv.innerText = text;
-            } else {
-                messageDiv.className = "bg-slate-800 text-slate-200 p-5 rounded-2xl rounded-tl-none border border-white/5 max-w-[90%] shadow-sm";
-                const proseDiv = document.createElement("div");
-                proseDiv.className = "prose-custom";
-                // Render markdown content
-                proseDiv.innerHTML = marked.parse(text);
-                messageDiv.appendChild(proseDiv);
-            }
-            
-            wrapper.appendChild(messageDiv);
-            chatArea.appendChild(wrapper);
-            chatArea.scrollTop = chatArea.scrollHeight;
-        }
+            const iconHtml = isBot ? 
+                `<div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center flex-shrink-0 border border-white/10"><i data-lucide="bot" class="w-4 h-4 text-indigo-400"></i></div>` : 
+                `<div class="w-8 h-8 rounded-full bg-indigo-500 flex items-center justify-center flex-shrink-0 shadow-lg"><i data-lucide="user" class="w-4 h-4 text-white"></i></div>`;
 
-        function showTypingIndicator() {
-            const id = 'typing-' + Date.now();
-            const div = document.createElement("div");
-            div.id = id;
-            div.className = "flex gap-2 p-4 bg-slate-800 rounded-2xl rounded-tl-none border border-white/5 w-fit mb-4";
-            div.innerHTML = `
-                <div class="typing-dot"></div>
-                <div class="typing-dot"></div>
-                <div class="typing-dot"></div>
+            const bubbleClass = isBot ? 
+                "bg-slate-800/80 chat-bubble-bot border-white/5" : 
+                "chat-bubble-user text-white shadow-lg";
+
+            container.innerHTML = `
+                ${iconHtml}
+                <div class="p-4 rounded-2xl ${bubbleClass} text-sm max-w-[85%] border shadow-sm prose prose-invert">
+                    ${isBot ? marked.parse(text) : text}
+                </div>
             `;
-            chatArea.appendChild(div);
-            chatArea.scrollTop = chatArea.scrollHeight;
-            return id;
-        }
-
-        function handleFileSelect(input) {
-            const file = input.files[0];
-            if (file) {
-                uploadResume(file);
-            }
-        }
-
-        function uploadResume(file) {
-            addMessage(`Uploading: ${file.name}...`, "user");
-            const typingId = showTypingIndicator();
             
-            const formData = new FormData();
-            formData.append("resume", file);
-
-            fetch("/upload", { method: "POST", body: formData })
-            .then(res => res.json())
-            .then(data => {
-                document.getElementById(typingId).remove();
-                if (data.status === "ok") {
-                    addMessage("### Analysis Complete ✅\n\nI've successfully parsed your resume context. Here is what I found:\n- **Contact Data** extracted\n- **Skills** mapped\n- **Education & Experience** verified\n\nYou can now ask me specific questions like: *'How can I improve my technical skills section?'* or *'Is my summary strong enough?'*", "bot");
-                    document.getElementById('scoreCard').classList.remove('opacity-30', 'pointer-events-none');
-                    updateScore(data.ats_score);
-                } else {
-                    addMessage("The server encountered an issue parsing the file. Please try again with a different PDF.", "bot");
-                }
-            })
-            .catch(err => {
-                document.getElementById(typingId).remove();
-                addMessage("Connection error. Ensure your Python backend is active and reachable.", "bot");
-            });
+            chatArea.appendChild(container);
+            chatArea.scrollTop = chatArea.scrollHeight;
+            lucide.createIcons();
         }
 
-        function updateScore(score) {
-            const radius = 70;
-            const circumference = 2 * Math.PI * radius;
-            const offset = circumference - (score / 100) * circumference;
-            progressCircle.style.strokeDashoffset = offset;
+        function showTyping() {
+            const t = document.createElement("div");
+            t.id = "typing-indicator";
+            t.className = "flex items-start gap-3 animate-slide-up";
+            t.innerHTML = `
+                <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center flex-shrink-0 border border-white/10">
+                    <i data-lucide="bot" class="w-4 h-4 text-indigo-400"></i>
+                </div>
+                <div class="bg-slate-800/80 p-4 rounded-2xl chat-bubble-bot border border-white/5 flex gap-1">
+                    <span class="w-1.5 h-1.5 bg-indigo-400 rounded-full animate-bounce"></span>
+                    <span class="w-1.5 h-1.5 bg-indigo-400 rounded-full animate-bounce" style="animation-delay: 0.2s"></span>
+                    <span class="w-1.5 h-1.5 bg-indigo-400 rounded-full animate-bounce" style="animation-delay: 0.4s"></span>
+                </div>
+            `;
+            chatArea.appendChild(t);
+            chatArea.scrollTop = chatArea.scrollHeight;
+            lucide.createIcons();
+        }
 
-            let start = 0;
-            const duration = 1200;
-            const startTime = performance.now();
+        function removeTyping() {
+            const t = document.getElementById("typing-indicator");
+            if (t) t.remove();
+        }
 
-            function animate(currentTime) {
-                const elapsed = currentTime - startTime;
-                const progress = Math.min(elapsed / duration, 1);
-                const currentScore = Math.floor(progress * score);
-                scoreValue.innerText = currentScore;
-                if (progress < 1) requestAnimationFrame(animate);
+        function handleFile(input) {
+            if (!input) {
+                fileInfo.classList.add("hidden");
+                document.getElementById('resumeFile').value = '';
+                return;
             }
-            requestAnimationFrame(animate);
+            const file = input.files[0];
+            if (!file) return;
 
-            if (score >= 80) scoreStatus.innerText = "Elite Compatibility";
-            else if (score >= 60) scoreStatus.innerText = "Strong Match";
-            else if (score >= 40) scoreStatus.innerText = "Average Profile";
-            else scoreStatus.innerText = "Needs Optimization";
+            fileNameDisplay.innerText = file.name;
+            fileInfo.classList.remove("hidden");
+
+            const fd = new FormData();
+            fd.append("resume", file);
+
+            fetch("/upload", { method: "POST", body: fd })
+                .then(res => {
+                    if(res.ok) addMessage(`Successfully uploaded: **${file.name}**`, "bot");
+                })
+                .catch(() => addMessage("Upload failed. Please try again.", "bot"));
+        }
+
+        function analyzeResume() {
+            const btn = document.getElementById("analyzeBtn");
+            const txt = document.getElementById("analyzeText");
+
+            btn.disabled = true;
+            txt.innerHTML = `<div class="spinner"></div> Processing AI Model`;
+
+            fetch("/analyze", { method: "POST" })
+                .then(res => res.json())
+                .then(data => {
+                    btn.disabled = false;
+                    txt.innerHTML = `Analyze Score`;
+
+                    if (data.status === "ok") {
+                        scoreSection.classList.remove("opacity-40");
+                        updateGauge(data.ats_score);
+                        addMessage(`### 📈 Analysis Results\n**Score:** ${data.ats_score}/100\n\n${data.feedback}`, "bot");
+                    } else {
+                        addMessage("Please upload a resume first to begin the analysis. ⚠️", "bot");
+                    }
+                })
+                .catch(() => {
+                    btn.disabled = false;
+                    txt.innerText = "Analyze Score";
+                    addMessage("Communication error with the server. Please check your connection.", "bot");
+                });
         }
 
         function sendMessage() {
             const input = document.getElementById("userInput");
-            const message = input.value.trim();
-            if (!message) return;
+            const msg = input.value.trim();
+            if (!msg) return;
 
-            addMessage(message, "user");
+            addMessage(msg, "user");
             input.value = "";
-
-            const typingId = showTypingIndicator();
+            showTyping();
 
             fetch("/chat", {
                 method: "POST",
-                headers: {"Content-Type": "application/json"},
-                body: JSON.stringify({ message: message })
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ message: msg })
             })
             .then(res => res.json())
             .then(data => {
-                document.getElementById(typingId).remove();
+                removeTyping();
                 addMessage(data.reply, "bot");
             })
-            .catch(err => {
-                document.getElementById(typingId).remove();
-                addMessage("I'm currently unable to process that request. Please check your network.", "bot");
+            .catch(() => {
+                removeTyping();
+                addMessage("I'm having trouble processing that right now. ❌", "bot");
             });
+        }
+
+        function clearChat() {
+            chatArea.innerHTML = '';
+            addMessage("Chat history cleared. How can I help you with your resume today?", "bot");
         }
     </script>
 </body>

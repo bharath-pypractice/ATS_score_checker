@@ -1,5 +1,5 @@
 from flask import Flask, render_template, request, jsonify
-import os
+import os, re
 import PyPDF2
 
 try:
@@ -7,96 +7,118 @@ try:
 except Exception:
     genai = None
 
-
 app = Flask(__name__)
 
-
+# ======================
+# Gemini Setup
+# ======================
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY")
-if genai is not None and GEMINI_API_KEY:
-    try:
-        genai.configure(api_key=GEMINI_API_KEY)
-    except Exception:
-        genai = None
+if genai and GEMINI_API_KEY:
+    genai.configure(api_key=GEMINI_API_KEY)
+else:
+    genai = None
 
 resume_text_store = ""
 
+# ======================
+# PDF Extraction
+# ======================
 def extract_text_from_pdf(file):
     text = ""
     reader = PyPDF2.PdfReader(file)
     for page in reader.pages:
-        page_text = page.extract_text()
-        if page_text:
-            text += page_text + "\n"
-    return text
+        if page.extract_text():
+            text += page.extract_text() + "\n"
+    return text.strip()
 
+# ======================
+# AI ATS Analysis
+# ======================
+def ai_ats_analysis(resume_text):
+    if genai is None:
+        return 0, "AI not configured"
 
-def calculate_ats_score(text):
-    score = 0
-    t = text.lower()
+    model = genai.GenerativeModel("gemini-2.5-flash")
 
-    if "@" in text:
-        score += 20
-    if "skills" in t:
-        score += 20
-    if "education" in t:
-        score += 20
-    if "experience" in t:
-        score += 20
-    if any(k in t for k in ["python", "java", "sql", "ai", "machine learning"]):
-        score += 20
+    prompt = f"""
+You are a professional ATS (Applicant Tracking System).
 
-    return score
+Analyze the resume realistically.
 
+Rules:
+- Score from 0 to 100
+- 100 is VERY rare
+- Penalize weak structure, poor skills, less experience
+- Give honest feedback
 
+Output strictly:
+ATS_SCORE: <number>
+FEEDBACK: <short explanation>
+
+Resume:
+{resume_text}
+"""
+
+    response = model.generate_content(prompt)
+    output = response.text.strip()
+
+    score_match = re.search(r"ATS_SCORE:\s*(\d+)", output)
+    feedback_match = re.search(r"FEEDBACK:\s*(.*)", output, re.S)
+
+    score = int(score_match.group(1)) if score_match else 0
+    feedback = feedback_match.group(1).strip() if feedback_match else "No feedback"
+
+    return max(0, min(score, 100)), feedback
+
+# ======================
+# Routes
+# ======================
 @app.route("/")
 def home():
     return render_template("index.html")
 
-@app.route("/about")
-def about():
-    return render_template("about.html")
-
 @app.route("/upload", methods=["POST"])
 def upload():
     global resume_text_store
+    pdf = request.files.get("resume")
 
-    pdf = request.files["resume"]
+    if not pdf:
+        return jsonify({"status": "error"}), 400
+
     resume_text_store = extract_text_from_pdf(pdf)
-    ats = calculate_ats_score(resume_text_store)
+    return jsonify({"status": "ok"})
 
+@app.route("/analyze", methods=["POST"])
+def analyze():
+    if not resume_text_store:
+        return jsonify({"status": "error", "message": "Upload resume first"}), 400
+
+    score, feedback = ai_ats_analysis(resume_text_store)
     return jsonify({
         "status": "ok",
-        "ats_score": ats
+        "ats_score": score,
+        "feedback": feedback
     })
 
 @app.route("/chat", methods=["POST"])
 def chat():
-    user_message = request.json["message"]
-    if genai is None or not GEMINI_API_KEY:
-        return jsonify({
-            "error": "Generative AI is not configured. Set GEMINI_API_KEY in the environment to enable chat.",
-            "reply": ""
-        }), 503
+    if genai is None:
+        return jsonify({"reply": "AI not configured"})
+
+    user_msg = request.json.get("message", "")
 
     model = genai.GenerativeModel("gemini-2.5-flash")
-    response = model.generate_content(
-        f"""
-You are a professional ATS Resume AI assistant.
+    response = model.generate_content(f"""
+You are a resume expert.
 
 Resume:
 {resume_text_store}
 
 User Question:
-{user_message}
-"""
-    )
+{user_msg}
+""")
 
-    reply_text = getattr(response, "text", None) or str(response)
-
-    return jsonify({
-        "reply": reply_text
-    })
-
+    return jsonify({"reply": response.text})
 
 if __name__ == "__main__":
     app.run(debug=True)
